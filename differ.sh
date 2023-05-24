@@ -1,17 +1,32 @@
 #!/bin/bash
 
 usage() {
-    echo "Usage: $0 <version1> <version2>"
-    echo "Example: $0 V24.0 V25.0RC3"
+    echo "Usage: $0 <version1> <version2> [-r|--rpc-version <rpc_version>]"
+    echo "Example: $0 V24.0 V25.0RC3 -r 24.0"
     exit 1
 }
 
-if [ $# -ne 2 ]; then
+if [ $# -lt 2 ]; then
     usage
 fi
 
 VERSION1=$1
 VERSION2=$2
+RPC_VERSION="v23.3"
+
+while [[ $# -gt 2 ]]; do
+    key="$3"
+
+    case $key in
+        -r|--rpc-version)
+            RPC_VERSION="$4"
+            shift 2
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
 
 FILENAME1=$(echo "$VERSION1" | tr '.' '-')
 FILENAME2=$(echo "$VERSION2" | tr '.' '-')
@@ -20,15 +35,15 @@ mkdir -p "$COMPARE_FOLDER"
 
 ./nanomock_manager.sh "nanocurrency/nano:$VERSION1" --restore-ledger
 sleep 5
-python3 run_rpc_multicall.py -url http://localhost:45101 -v 23.3 -f "$VERSION1" > "$COMPARE_FOLDER/v1_filename1.out"
+python3 run_rpc_multicall.py -url http://localhost:45101 -v "$RPC_VERSION" -f "$VERSION1" > "$COMPARE_FOLDER/v1_filename1.out"
 sleep 2
-python3 run_rpc_multicall.py -url http://localhost:45101 -v 23.3 -f "$VERSION1-r2" > "$COMPARE_FOLDER/v1_filename2.out"
+python3 run_rpc_multicall.py -url http://localhost:45101 -v "$RPC_VERSION" -f "$VERSION1-r2" > "$COMPARE_FOLDER/v1_filename2.out"
 
 ./nanomock_manager.sh "nanocurrency/nano:$VERSION2" --restore-ledger
 sleep 5
-python3 run_rpc_multicall.py -url http://localhost:45101 -v 23.3 -f "$VERSION2" > "$COMPARE_FOLDER/v2_filename1.out"
+python3 run_rpc_multicall.py -url http://localhost:45101 -v "$RPC_VERSION" -f "$VERSION2" > "$COMPARE_FOLDER/v2_filename1.out"
 sleep 2
-python3 run_rpc_multicall.py -url http://localhost:45101 -v 23.3 -f "$VERSION2-r2" > "$COMPARE_FOLDER/v2_filename2.out"
+python3 run_rpc_multicall.py -url http://localhost:45101 -v "$RPC_VERSION" -f "$VERSION2-r2" > "$COMPARE_FOLDER/v2_filename2.out"
 
 FILENAME_V1_1=$(tail -n 1 "$COMPARE_FOLDER/v1_filename1.out")
 FILENAME_V1_2=$(tail -n 1 "$COMPARE_FOLDER/v1_filename2.out")

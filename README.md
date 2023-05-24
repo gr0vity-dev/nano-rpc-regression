@@ -31,7 +31,7 @@ pip install -r requirements.txt
 You can run the regression test tool with the following command:
 
 ```shell
-./differ.sh
+./differ.sh V24.0 V25.0 -r V24.0
 ```
 
 The `FINAL_{v1}_{v2}.json` output file will be placed in a `compare_{v1}_{v2}/` directory in the root of the project. This file contains all the rpc mathods and its keys that differ between versions.
